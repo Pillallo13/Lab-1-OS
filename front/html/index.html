@@ -4,14 +4,163 @@
 <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="../static/CSS/index.css">
         <title>Main page</title>
 </head>
 
 <body>
 
+        <header>
+                <h1>Lab #1 - OS</h1>
+        </header>
 
+        <main>
+                <section class="configuracion">
+                        <label for="selector">Selecciona un algoritmo:</label>
+                        <select id="selector">
+                                <option value=1>Algoritmo 1</option>
+                                <option value=2>Algoritmo 2</option>
+                                <option value=3>Algoritmo 3</option>
+                                <option value=4>Algoritmo 4</option>
+                        </select>
+
+                        <label for="quantum">Quantum:</label>
+                        <input type="number" id="quantum" name="quantum" min="1" max="20" value="1">
+                </section>
+
+                <div class="tabla-contenedor">
+                        <h3>Información de procesos</h3>
+                        <button onclick="agregarProceso()">Agregar Proceso</button>
+                        <button onclick="agregarBloqueo()">Agregar Bloqueo</button>
+                        <button onclick="eliminarBloqueo()">Eliminar último Bloqueo</button>
+                        <table id="tabla-procesos">
+                                <thead id="thead-procesos">
+                                        <tr id="fila-principal">
+                                                <th>Proceso</th>
+                                                <th>Llegada</th>
+                                                <th>Ejecución</th>
+                                                <th colspan="2" class="bloqueo-header">Bloqueo 1</th>
+                                                <th>Acciones</th>
+                                        </tr>
+                                        <tr id="subfila-principal">
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th>Duración</th>
+                                                <th>Inicio</th>
+                                                <th></th>
+                                        </tr>
+                                </thead>
+                                <tbody id="tbody-procesos">
+                                        <tr>
+                                                <td contenteditable="true">A</td>
+                                                <td contenteditable="true">0</td>
+                                                <td contenteditable="true">5</td>
+                                                <td contenteditable="true">2</td>
+                                                <td contenteditable="true">3</td>
+                                                <td><button onclick="eliminarFila(this)">Eliminar</button></td>
+                                        </tr>
+                                </tbody>
+                        </table>
+                </div>
+
+
+                <div class="tabla-grafica">
+                        <h3>Grafica de tiempos</h3>
+                        <table> <!-- Grafica -->
+                                <thead>
+                                        <!-- Toca cambiar el with 100%; No se sabe el comportambiento al graficar muchos tiempos de procesador -->
+                                <tbody>
+                                        <tr>
+                                                <td>C</td>
+                                                <td colspan="4"></td>
+                                                <td colspan="3">
+                                                        <div class="espera"></div>
+                                                </td>
+                                        </tr>
+                                        <tr>
+                                                <td>B</td>
+                                                <td></td>
+                                                <td colspan="3">
+                                                        <div class="bloqueo"></div>
+                                                </td>
+                                                <td colspan="3"></td>
+                                        </tr>
+                                        <tr>
+                                                <td>A</td>
+                                                <td>
+                                                        <div class="ejecucion"></div>
+                                                </td>
+                                                <td></td>
+                                        </tr>
+                                </tbody>
+                                <tr>
+                                        <th>Proceso</th>
+                                        <th>t 0</th>
+                                        <th>t 1</th>
+                                        <th>t 2</th>
+                                        <th>t 3</th>
+                                        <th>t 4</th>
+                                        <th>t 5</th>
+                                        <th>t 6</th>
+                                </tr>
+                                </thead>
+                        </table>
+                </div>
+
+
+                <div class="tabla-contenedor">
+                        <h3>Reporte de Resultados</h3>
+                        <table> <!-- Reporte -->
+                                <thead>
+                                        <tr>
+                                                <th>Proceso</th>
+                                                <th>Ejecucion </th>
+                                                <th>Tiempo respuesta</th>
+                                                <th>Espera</th>
+                                                <th>Bloqueo</th>
+                                                <th>Instante Fin</th>
+                                                <th>Retorno</th>
+                                                <th>Tiempo Perdido</th>
+                                                <th>Penalidad</th>
+                                        </tr>
+                                </thead>
+                                <tbody>
+                                        <tr>
+                                                <td>patata</td>
+                                                <td>patata</td>
+                                                <td>patata</td>
+                                                <td>patata</td>
+                                                <td>patata</td>
+                                                <td>patata</td>
+                                                <td>patata</td>
+                                                <td>patata</td>
+                                                <td>patata</td>
+                                        </tr>
+                                </tbody>
+                        </table>
+                </div>
+        </main>
+
+        <footer>
+                <div class="footer-content">
+                        <div class="autor">
+                                <p>Juan Manuel Castillo</p>
+                                <img src="../static/images/github.png" alt="GitHub">
+                        </div>
+                        <div class="autor">
+                                <p>Sebastian Quintero Jaimes</p>
+                                <a href="https://github.com/Pillallo13"> <img src="../static/images/github.png"
+                                                alt="GitHub"></a>
+                        </div>
+                        <div class="autor">
+                                <p>Luna Gaitan</p>
+                                <img src="../static/images/github.png" alt="GitHub">
+                        </div>
+                </div>
+        </footer>
+
+        <script src="../../src/scripts.js"> </script>
 </body>
 
 </html>
-
-<!--   3126229222 -->

@@ -1,10 +1,26 @@
+import { ejecutarFCFS } from "./fcfs.js";
+import { ejecutarSJF } from "./sjf.js";
+import { ejecutarSRTF } from "./srjf.js";
+import { ejecutarRR } from "./round robin.js";
+import { renderResultTable } from "./tabla-resultados.js";
+import { renderizarGrafica } from "./Render.js";
+
+const selector = document.getElementById("selector");
+const leerTablaBtn = document.getElementById("leer-informacion-btn");
+
+let datos = [];
 let colaListos = [];
+let resultados = [];
+let historial = {};
+
+// Event listener para el botón "Leer tabla"
+leerTablaBtn.addEventListener("click", leerInformacion);
 
 function leerInformacion() {
   const tabla = document.getElementById("tabla-procesos");
   const filas = tabla.querySelectorAll("tbody tr");
-
-  let datos = [];
+  datos = [];
+  colaListos = [];
 
   filas.forEach((fila, filaIndex) => {
     const celdas = fila.querySelectorAll("td");
@@ -14,74 +30,90 @@ function leerInformacion() {
       filaDatos.push(celda.textContent.trim());
     });
 
-    //Verificacion fila vacia - seguir trabajando
     if (!filaDatos[0] || !filaDatos[1] || !filaDatos[2]) {
       alert(
         `La fila ${
           filaIndex + 1
-        } tiene campos incompletos y el programa no funcionara asi`
+        } tiene campos incompletos y el programa no funcionará así`
       );
       return;
     } else {
       datos.push(filaDatos);
-
-      let p = crearProceso(filaDatos[0], filaDatos[2], [
-        filaDatos[4],
-        filaDatos[3],
-      ]);
+      let bloqueos = [];
+      for (let i = 3; i < filaDatos.length - 1; i += 2) {
+        if (filaDatos[i] && filaDatos[i + 1]) {
+          bloqueos.push({
+            inicio: parseInt(filaDatos[i + 1]),
+            duracion: parseInt(filaDatos[i]),
+          });
+        }
+      }
+      let p = crearProceso(
+        filaDatos[0],
+        parseInt(filaDatos[1]),
+        parseInt(filaDatos[2]),
+        bloqueos
+      );
       colaListos.push(p);
     }
   });
 
-  //Esto va a ser codigo muerto
   console.log("Datos de la tabla de procesos:", datos);
   console.log("Historial Procesos: ", colaListos);
   return colaListos;
 }
 
-function crearProceso(id, tiempoTotal, bloqueos = []) {
+function crearProceso(id, llegada, tiempoTotal, bloqueos = []) {
   return {
-    id, // Nombre identificador del proceso
-    tiempoTotal, // Duración total necesaria
-    bloqueos, // Bloqueos representados por { inicio, duracion }
+    id,
+    llegada,
+    tiempoTotal,
+    bloqueos,
     progreso: 0,
     estado: "listo",
     tiempoBloqueoRestante: 0,
   };
 }
 
-function simular() {
-  const selector = document.getElementById("selector");
+selector.addEventListener("change", () => {
+  const seleccion = selector.value;
+  const quantum = leerQuantum();
 
-  selector.addEventListener("change", () => {
-    const seleccion = selector.value;
-
+  if (seleccion && colaListos.length > 0) {
     switch (seleccion) {
       case "1":
-        ejecutarFCFS(); //Toca implementar estas mkdas
+        ({ resultados, historial } = ejecutarFCFS([...colaListos]));
         break;
       case "2":
-        ejecutarSJF();
+        ({ resultados, historial } = ejecutarSJF([...colaListos]));
         break;
       case "3":
-        ejecutarSRTF();
+        ({ resultados, historial } = ejecutarSRTF([...colaListos]));
         break;
       case "4":
-        ejecutarRR();
+        if (quantum !== undefined) {
+          ({ resultados, historial } = ejecutarRR([...colaListos], quantum));
+        }
         break;
       default:
-        Alert("Ninguna opción válida seleccionada");
+        alert("Ninguna opción válida seleccionada");
     }
-  });
-}
 
-//Para la funcion de RR
+    // Renderizar gráfica y tabla de resultados
+    renderizarGrafica(historial);
+    renderResultTable(resultados);
+  } else if (seleccion) {
+    alert("Por favor, primero lee la información de la tabla.");
+  }
+});
+
 function leerQuantum() {
   const quantumInput = document.getElementById("quantum");
   const quantum = parseInt(quantumInput.value);
 
   if (isNaN(quantum) || quantum < 0 || quantum > 20) {
     alert("Por favor ingresa un valor válido de Quantum entre 0 y 20");
-    return;
+    return undefined;
   }
+  return quantum;
 }

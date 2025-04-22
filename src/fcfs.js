@@ -1,97 +1,105 @@
-// Simulación de un planificador FCFS (First Come, First Served) con bloqueos
-
 // -----> MODELO <------
-function crearProceso(id, tiempoTotal, bloqueos = []) {
+export function crearProceso(id, llegada = 0, tiempoTotal, bloqueos = []) {
   return {
-    id, // Nombre identificador del proceso
-    tiempoTotal, // Duración total necesaria
-    bloqueos, // Bloqueos representados por { inicio, duracion }
+    id,
+    llegada,
+    tiempoTotal,
+    bloqueos: [...bloqueos],
     progreso: 0,
     estado: "listo",
     tiempoBloqueoRestante: 0,
+
+    // métricas
+    startTime: null,
+    finishTime: null,
+    waitingTime: 0,
+    blockingTime: 0,
   };
 }
 
-// ------> VISTA <-------
-let procesos = [
-  crearProceso("P1", 10, [{ inicio: 3, duracion: 2 }]),
-  crearProceso("P2", 5),
-  crearProceso("P3", 8, [{ inicio: 4, duracion: 3 }]),
-];
-/*Estos datos son de prueba para el funcionamiento temporal de los algoritmos. Los datos reales deben de venir desde la vista*/
+export function ejecutarFCFS(procesosOriginales) {
+  const procesos = procesosOriginales.map((p) => ({
+    ...p,
+    bloqueos: [...p.bloqueos],
+    progreso: 0,
+    estado: "listo",
+    tiempoBloqueoRestante: 0,
+    startTime: null,
+    finishTime: null,
+    waitingTime: 0,
+    blockingTime: 0,
+  }));
 
-// ------> CONTROLADOR <-------
-let tiempo = 0;
-let colaListos = [...procesos]; // Procesos que están "listos"
-let bloqueados = []; // Procesos en bloqueo de E/S
-let ejecutando = null; // Proceso que está usando la CPU
+  let tiempo = 0;
+  const colaListos = [];
+  const bloqueados = [];
+  let ejecutando = null;
+  const historial = {};
 
-function tick() {
-  console.log(`Tiempo ${tiempo}:`);
+  procesos.forEach((p) => (historial[p.id] = []));
 
-  // Comprobar bloqueos
-  for (let i = bloqueados.length - 1; i >= 0; i--) {
-    let p = bloqueados[i];
-    p.tiempoBloqueoRestante--;
-    if (p.tiempoBloqueoRestante <= 0) {
-      p.estado = "listo";
-      colaListos.push(p);
-      bloqueados.splice(i, 1);
-      console.log(`  ${p.id} sale del bloqueo`);
+  while (procesos.some((p) => p.estado !== "terminado")) {
+    procesos.forEach((p) => {
+      if (p.llegada === tiempo) {
+        colaListos.push(p);
+      }
+    });
+
+    bloqueados.forEach((p, i) => {
+      p.tiempoBloqueoRestante--;
+      if (p.tiempoBloqueoRestante <= 0) {
+        p.estado = "listo";
+        colaListos.push(p);
+        bloqueados.splice(i, 1);
+      }
+    });
+
+    if (!ejecutando && colaListos.length > 0) {
+      ejecutando = colaListos.shift();
+      ejecutando.estado = "ejecutando";
+      if (ejecutando.startTime === null) ejecutando.startTime = tiempo;
     }
+
+    procesos.forEach((p) => {
+      historial[p.id].push(p.estado);
+    });
+
+    if (ejecutando) {
+      ejecutando.progreso++;
+      if (
+        ejecutando.bloqueos.length > 0 &&
+        ejecutando.bloqueos[0].inicio === ejecutando.progreso
+      ) {
+        const bloqueo = ejecutando.bloqueos.shift();
+        ejecutando.estado = "bloqueado";
+        ejecutando.tiempoBloqueoRestante = bloqueo.duracion;
+        bloqueados.push(ejecutando);
+        ejecutando = null;
+      } else if (ejecutando.progreso >= ejecutando.tiempoTotal) {
+        ejecutando.estado = "terminado";
+        ejecutando.finishTime = tiempo + 1;
+        ejecutando = null;
+      }
+    }
+
+    tiempo++;
   }
 
-  // Asignar CPU si está libre
-  if (!ejecutando && colaListos.length > 0) {
-    ejecutando = colaListos.shift(); // Saca el primero de la cola
-    ejecutando.estado = "ejecutando";
-    console.log(`  ${ejecutando.id} comienza a ejecutarse`);
-  }
+  const resultados = procesos.map((p) => {
+    const retorno = p.finishTime - p.llegada;
+    const perdido = retorno - p.tiempoTotal;
+    return {
+      proceso: p.id,
+      ejecucion: p.tiempoTotal,
+      tiempoRespuesta: p.startTime - p.llegada,
+      espera: p.waitingTime,
+      bloqueo: p.blockingTime,
+      instanteFin: p.finishTime,
+      retorno,
+      tiempoPerdido: perdido,
+      penalidad: parseFloat((retorno / p.tiempoTotal).toFixed(2)),
+    };
+  });
 
-  // Para cualquier proceso activo
-  if (ejecutando) {
-    ejecutando.progreso++;
-    console.log(
-      `  ${ejecutando.id} ejecutándose (progreso: ${ejecutando.progreso}/${ejecutando.tiempoTotal})`
-    );
-
-    // Verificar si un proceso debe bloquearse
-    if (
-      ejecutando.bloqueos.length > 0 &&
-      ejecutando.bloqueos[0].inicio === ejecutando.progreso
-    ) {
-      const bloqueo = ejecutando.bloqueos.shift();
-      ejecutando.estado = "bloqueado";
-      ejecutando.tiempoBloqueoRestante = bloqueo.duracion;
-      bloqueados.push(ejecutando);
-      console.log(
-        `  ${ejecutando.id} entra en bloqueo por ${bloqueo.duracion} unidades`
-      );
-      ejecutando = null;
-    }
-    // Verificar si un proceso terminó
-    else if (ejecutando.progreso >= ejecutando.tiempoTotal) {
-      ejecutando.estado = "terminado";
-      console.log(`  ${ejecutando.id} ha terminado`);
-      ejecutando = null;
-    }
-  } else {
-    console.log(`  CPU está inactiva`);
-  }
-  tiempo++;
+  return { resultados, historial };
 }
-
-// Ejecutar la simulación
-function simular() {
-  while (
-    colaListos.length > 0 ||
-    bloqueados.length > 0 ||
-    ejecutando !== null
-  ) {
-    tick();
-  }
-
-  console.log("Simulación completada.");
-}
-
-simular();

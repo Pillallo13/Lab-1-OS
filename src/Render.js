@@ -1,6 +1,5 @@
-function renderizarGrafica(historial) {
+export function renderizarGrafica(historial) {
   const tbody = document.querySelector(".tabla-grafica tbody");
-
   tbody.innerHTML = ""; // Limpiar lo anterior
 
   const tiemposMax = Math.max(

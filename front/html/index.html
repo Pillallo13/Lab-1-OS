@@ -30,10 +30,10 @@
 
                 <div class="tabla-contenedor">
                         <h3>Información de procesos</h3>
-                        <button onclick="agregarProceso()">Agregar Proceso</button>
-                        <button onclick="agregarBloqueo()">Agregar Bloqueo</button>
-                        <button onclick="eliminarBloqueo()">Eliminar último Bloqueo</button>
-                        <button onclick="leerInformacion()">Leer informacion</button>
+                        <button id="agregar-proceso-btn">Agregar Proceso</button>
+                        <button id="agregar-bloqueo-btn">Agregar Bloqueo</button>
+                        <button id="eliminar-bloqueo-btn">Eliminar último Bloqueo</button>
+                        <button id="leer-informacion-btn">Leer tabla</button>
                         <table id="tabla-procesos">
                                 <thead id="thead-procesos">
                                         <tr id="fila-principal">
@@ -59,7 +59,7 @@
                                                 <td contenteditable="true">5</td>
                                                 <td contenteditable="true">2</td>
                                                 <td contenteditable="true">3</td>
-                                                <td><button onclick="eliminarFila(this)">Eliminar</button></td>
+                                                <td><button class="eliminar-fila-btn">Eliminar</button></td>
                                         </tr>
                                 </tbody>
                         </table>
@@ -95,14 +95,7 @@
                                         </tr>
                                 </tbody>
                                 <tr>
-                                        <th>Proceso</th>
-                                        <th>t 0</th>
-                                        <th>t 1</th>
-                                        <th>t 2</th>
-                                        <th>t 3</th>
-                                        <th>t 4</th>
-                                        <th>t 5</th>
-                                        <th>t 6</th>
+
                                 </tr>
                                 </thead>
                         </table>
@@ -111,11 +104,11 @@
 
                 <div class="tabla-contenedor">
                         <h3>Reporte de Resultados</h3>
-                        <table> <!-- Reporte -->
+                        <table>
                                 <thead>
                                         <tr>
                                                 <th>Proceso</th>
-                                                <th>Ejecucion </th>
+                                                <th>Ejecucion</th>
                                                 <th>Tiempo respuesta</th>
                                                 <th>Espera</th>
                                                 <th>Bloqueo</th>
@@ -125,18 +118,8 @@
                                                 <th>Penalidad</th>
                                         </tr>
                                 </thead>
-                                <tbody>
-                                        <tr>
-                                                <td>patata</td>
-                                                <td>patata</td>
-                                                <td>patata</td>
-                                                <td>patata</td>
-                                                <td>patata</td>
-                                                <td>patata</td>
-                                                <td>patata</td>
-                                                <td>patata</td>
-                                                <td>patata</td>
-                                        </tr>
+                                <tbody id="resultBody">
+                                        <!-- Acá se va a cargar o desplegar los datos de los resultados :D -->
                                 </tbody>
                         </table>
                 </div>
@@ -159,10 +142,14 @@
                         </div>
                 </div>
         </footer>
-
-        <script src="../../src/tabla.js"> </script>
-        <script src="../../src/controlador.js"> </script>
-        <script src="../../src/Render.js"> </script>
+        <script type="module" src="../../src/tabla.js"> </script>
+        <script type="module" src="../../src/tabla-resultados.js"> </script>
+        <script type="module" src="../../src/controlador.js"></script>
+        <script type="module" src="../../src/Render.js"> </script>
+        <script type="module" src="../../src/fcfs.js"> </script>
+        <script type="module" src="../../src/sjf.js"> </script>
+        <script type="module" src="../../src/srjf.js"> </script>
+        <script type="module" src="../../src/round robin.js"> </script>
 </body>
 
 </html>

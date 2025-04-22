@@ -1,101 +1,86 @@
-// Simulación de un planificador SJF (Shortest Job First) con bloqueos
-
-// -------> MODELO <------
-function crearProceso(id, tiempoTotal, bloqueos = []) {
-  return {
-    id, // Nombre identificador del proceso
-    tiempoTotal, // Duración total necesaria
-    bloqueos, // Bloqueos representados por {inicio, duración}
+export function ejecutarSJF(procesosOriginales) {
+  const procesos = procesosOriginales.map((p) => ({
+    ...p,
     progreso: 0,
     estado: "listo",
     tiempoBloqueoRestante: 0,
-  };
-}
+    startTime: null,
+    finishTime: null,
+    waitingTime: 0,
+    blockingTime: 0,
+  }));
 
-let historialPorProceso = {};
+  let tiempo = 0;
+  const colaListos = [];
+  const bloqueados = [];
+  let ejecutando = null;
+  const historial = {};
 
-// -----> VISTA <------
-let procesos = [
-  crearProceso("P1", 10, [{ inicio: 3, duracion: 2 }]),
-  crearProceso("P2", 5),
-  crearProceso("P3", 8, [{ inicio: 4, duracion: 3 }]),
-];
-/*Estos datos son de prueba para el funcionamiento temporal de los algoritmos. Los datos reales deben de venir desde la vista*/
+  procesos.forEach((p) => (historial[p.id] = []));
 
-// -----> CONTROLADOR <------
-let tiempo = 0;
-let colaListos = [...procesos]; // Procesos que están "listos"
-let bloqueados = []; // Procesos en bloqueo de E/S
-let ejecutando = null; // Proceso que está usando la CPU
+  while (procesos.some((p) => p.estado !== "terminado")) {
+    procesos.forEach((p) => {
+      if (p.llegada === tiempo) {
+        colaListos.push(p);
+      }
+    });
 
-function tick() {
-  console.log(`\n--- Tiempo ${tiempo} ---`);
+    bloqueados.forEach((p, i) => {
+      p.tiempoBloqueoRestante--;
+      if (p.tiempoBloqueoRestante <= 0) {
+        p.estado = "listo";
+        colaListos.push(p);
+        bloqueados.splice(i, 1);
+      }
+    });
 
-  // Comprobar bloqueos
-  for (let i = bloqueados.length - 1; i >= 0; i--) {
-    const p = bloqueados[i];
-    p.tiempoBloqueoRestante--;
-    if (p.tiempoBloqueoRestante <= 0) {
-      p.estado = "listo";
-      colaListos.push(p);
-      bloqueados.splice(i, 1);
-      console.log(`  > ${p.id} sale del bloqueo y vuelve a colaListos`);
+    if (!ejecutando && colaListos.length > 0) {
+      colaListos.sort((a, b) => a.tiempoTotal - b.tiempoTotal);
+      ejecutando = colaListos.shift();
+      ejecutando.estado = "ejecutando";
+      if (ejecutando.startTime === null) ejecutando.startTime = tiempo;
     }
-  }
 
-  // Cuando la CPU esté libre, se asigna el proceso más corto
-  if (!ejecutando && colaListos.length > 0) {
-    let indiceMenor = 0;
-    for (let i = 1; i < colaListos.length; i++) {
-      if (colaListos[i].tiempoTotal < colaListos[indiceMenor].tiempoTotal) {
-        indiceMenor = i;
+    procesos.forEach((p) => {
+      historial[p.id].push(p.estado);
+    });
+
+    if (ejecutando) {
+      ejecutando.progreso++;
+      if (
+        ejecutando.bloqueos.length > 0 &&
+        ejecutando.bloqueos[0].inicio === ejecutando.progreso
+      ) {
+        const bloqueo = ejecutando.bloqueos.shift();
+        ejecutando.estado = "bloqueado";
+        ejecutando.tiempoBloqueoRestante = bloqueo.duracion;
+        bloqueados.push(ejecutando);
+        ejecutando = null;
+      } else if (ejecutando.progreso >= ejecutando.tiempoTotal) {
+        ejecutando.estado = "terminado";
+        ejecutando.finishTime = tiempo + 1;
+        ejecutando = null;
       }
     }
-    ejecutando = colaListos.splice(indiceMenor, 1)[0]; // Lo extraigo de la cola y lo pongo a ejecutar
-    ejecutando.estado = "ejecutando";
-    console.log(`  > ${ejecutando.id} comienza a ejecutarse (SJF)`);
+
+    tiempo++;
   }
 
-  // Para cualquier proceso activo
-  if (ejecutando) {
-    ejecutando.progreso++;
-    console.log(
-      `  - ${ejecutando.id}: progreso ${ejecutando.progreso}/${ejecutando.tiempoTotal}`
-    );
+  const resultados = procesos.map((p) => {
+    const retorno = p.finishTime - p.llegada;
+    const perdido = retorno - p.tiempoTotal;
+    return {
+      proceso: p.id,
+      ejecucion: p.tiempoTotal,
+      tiempoRespuesta: p.startTime - p.llegada,
+      espera: p.waitingTime,
+      bloqueo: p.blockingTime,
+      instanteFin: p.finishTime,
+      retorno,
+      tiempoPerdido: perdido,
+      penalidad: parseFloat((retorno / p.tiempoTotal).toFixed(2)),
+    };
+  });
 
-    // Verificar si un proceso debe bloquearse
-    if (
-      ejecutando.bloqueos.length > 0 &&
-      ejecutando.progreso === ejecutando.bloqueos[0].inicio
-    ) {
-      const bloque = ejecutando.bloqueos.shift();
-      ejecutando.estado = "bloqueado";
-      ejecutando.tiempoBloqueoRestante = bloque.duracion;
-      bloqueados.push(ejecutando);
-      console.log(` ${ejecutando.id} entra en bloqueo por ${bloque.duracion}`);
-      ejecutando = null;
-    }
-    // Verificar si un proceso ha terminado
-    else if (ejecutando.progreso >= ejecutando.tiempoTotal) {
-      ejecutando.estado = "terminado";
-      console.log(` ${ejecutando.id} ha terminado`);
-      ejecutando = null;
-    }
-  } else {
-    console.log(`CPU inactiva`);
-  }
-  tiempo++;
+  return { resultados, historial };
 }
-
-// Ejecutar la simulación
-function simular() {
-  while (colaListos.length > 0 || bloqueados.length > 0 || ejecutando) {
-    tick();
-  }
-  console.log(`\n=== Simulación completada en tiempo ${tiempo} ===`);
-}
-if (!historialPorProceso[p.id]) historialPorProceso[p.id] = [];
-historialPorProceso[p.id].push(p.estado);
-
-simular();
-renderizarGrafica(historialPorProceso);

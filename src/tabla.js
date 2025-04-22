@@ -1,5 +1,9 @@
 let contadorBloqueos = 1;
 
+export function obtenerContador() {
+  return contadorBloqueos;
+}
+
 function agregarProceso() {
   const tbody = document.getElementById("tbody-procesos");
   const fila = tbody.insertRow();
@@ -22,14 +26,14 @@ function agregarProceso() {
   const celdaBoton = fila.insertCell();
   const boton = document.createElement("button");
   boton.innerText = "Eliminar";
-  boton.onclick = function () {
-    eliminarFila(boton);
-  };
+  boton.classList.add("eliminar-fila-btn"); // Agregar clase para el listener
+  boton.addEventListener("click", eliminarFila); // Usar addEventListener aquí
   celdaBoton.appendChild(boton);
 }
 
-function eliminarFila(boton) {
-  const fila = boton.parentNode.parentNode;
+function eliminarFila(event) {
+  const botonEliminar = event.target; // El botón que fue clickeado
+  const fila = botonEliminar.parentNode.parentNode; // Obtiene la fila (tr)
   fila.remove();
 }
 
@@ -38,7 +42,6 @@ function agregarBloqueo() {
 
   const filaPrincipal = document.getElementById("fila-principal");
   const subfila = document.getElementById("subfila-principal");
-  const tabla = document.getElementById("tabla-procesos");
   const tbody = document.getElementById("tbody-procesos");
 
   // Insertar nuevo encabezado de bloqueo
@@ -100,3 +103,48 @@ function eliminarBloqueo() {
 
   contadorBloqueos--;
 }
+
+function leerInformacion() {
+  const tabla = document.getElementById("tabla-procesos");
+  const filas = tabla.querySelectorAll("tbody tr");
+
+  filas.forEach((fila, index) => {
+    const proceso = fila.cells[0].textContent;
+    const llegada = fila.cells[1].textContent;
+    const ejecucion = fila.cells[2].textContent;
+    const bloqueos = [];
+
+    for (let i = 3; i < fila.cells.length - 1; i += 2) {
+      const duracion = fila.cells[i].textContent;
+      const inicio = fila.cells[i + 1].textContent;
+      bloqueos.push({ duracion, inicio });
+    }
+
+    console.log(
+      `Proceso ${proceso}, Llegada: ${llegada}, Ejecución: ${ejecucion}, Bloqueos:`,
+      bloqueos
+    );
+  });
+}
+
+//Listeners
+document.addEventListener("DOMContentLoaded", () => {
+  const agregarProcesoBtn = document.getElementById("agregar-proceso-btn");
+  agregarProcesoBtn.addEventListener("click", agregarProceso);
+
+  const agregarBloqueoBtn = document.getElementById("agregar-bloqueo-btn");
+  agregarBloqueoBtn.addEventListener("click", agregarBloqueo);
+
+  const eliminarBloqueoBtn = document.getElementById("eliminar-bloqueo-btn");
+  eliminarBloqueoBtn.addEventListener("click", eliminarBloqueo);
+
+  const leerInformacionBtn = document.getElementById("leer-informacion-btn");
+  leerInformacionBtn.addEventListener("click", leerInformacion);
+
+  const botonesEliminar = document.querySelectorAll(
+    "#tbody-procesos .eliminar-fila-btn"
+  );
+  botonesEliminar.forEach((boton) => {
+    boton.addEventListener("click", eliminarFila);
+  });
+});

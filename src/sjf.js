@@ -3,28 +3,30 @@
 // -------> MODELO <------
 function crearProceso(id, tiempoTotal, bloqueos = []) {
   return {
-    id,                     // Nombre identificador del proceso
-    tiempoTotal,            // Duración total necesaria
-    bloqueos,               // Bloqueos representados por {inicio, duración}
-    progreso: 0,            
-    estado: 'listo',       
-    tiempoBloqueoRestante: 0
+    id, // Nombre identificador del proceso
+    tiempoTotal, // Duración total necesaria
+    bloqueos, // Bloqueos representados por {inicio, duración}
+    progreso: 0,
+    estado: "listo",
+    tiempoBloqueoRestante: 0,
   };
 }
 
+let historialPorProceso = {};
+
 // -----> VISTA <------
 let procesos = [
-  crearProceso('P1', 10, [{ inicio: 3, duracion: 2 }]),
-  crearProceso('P2', 5),
-  crearProceso('P3', 8, [{ inicio: 4, duracion: 3 }])
+  crearProceso("P1", 10, [{ inicio: 3, duracion: 2 }]),
+  crearProceso("P2", 5),
+  crearProceso("P3", 8, [{ inicio: 4, duracion: 3 }]),
 ];
-/*Estos datos son de prueba para el funcionamiento temporal de los algoritmos. Los datos reales deben de venir desde la vista*/ 
+/*Estos datos son de prueba para el funcionamiento temporal de los algoritmos. Los datos reales deben de venir desde la vista*/
 
 // -----> CONTROLADOR <------
 let tiempo = 0;
-let colaListos = [...procesos];  // Procesos que están "listos"
-let bloqueados = [];             // Procesos en bloqueo de E/S
-let ejecutando = null;           // Proceso que está usando la CPU
+let colaListos = [...procesos]; // Procesos que están "listos"
+let bloqueados = []; // Procesos en bloqueo de E/S
+let ejecutando = null; // Proceso que está usando la CPU
 
 function tick() {
   console.log(`\n--- Tiempo ${tiempo} ---`);
@@ -34,7 +36,7 @@ function tick() {
     const p = bloqueados[i];
     p.tiempoBloqueoRestante--;
     if (p.tiempoBloqueoRestante <= 0) {
-      p.estado = 'listo';
+      p.estado = "listo";
       colaListos.push(p);
       bloqueados.splice(i, 1);
       console.log(`  > ${p.id} sale del bloqueo y vuelve a colaListos`);
@@ -49,8 +51,8 @@ function tick() {
         indiceMenor = i;
       }
     }
-    ejecutando = colaListos.splice(indiceMenor, 1)[0];// Lo extraigo de la cola y lo pongo a ejecutar
-    ejecutando.estado = 'ejecutando';
+    ejecutando = colaListos.splice(indiceMenor, 1)[0]; // Lo extraigo de la cola y lo pongo a ejecutar
+    ejecutando.estado = "ejecutando";
     console.log(`  > ${ejecutando.id} comienza a ejecutarse (SJF)`);
   }
 
@@ -67,7 +69,7 @@ function tick() {
       ejecutando.progreso === ejecutando.bloqueos[0].inicio
     ) {
       const bloque = ejecutando.bloqueos.shift();
-      ejecutando.estado = 'bloqueado';
+      ejecutando.estado = "bloqueado";
       ejecutando.tiempoBloqueoRestante = bloque.duracion;
       bloqueados.push(ejecutando);
       console.log(` ${ejecutando.id} entra en bloqueo por ${bloque.duracion}`);
@@ -75,7 +77,7 @@ function tick() {
     }
     // Verificar si un proceso ha terminado
     else if (ejecutando.progreso >= ejecutando.tiempoTotal) {
-      ejecutando.estado = 'terminado';
+      ejecutando.estado = "terminado";
       console.log(` ${ejecutando.id} ha terminado`);
       ejecutando = null;
     }
@@ -92,6 +94,8 @@ function simular() {
   }
   console.log(`\n=== Simulación completada en tiempo ${tiempo} ===`);
 }
+if (!historialPorProceso[p.id]) historialPorProceso[p.id] = [];
+historialPorProceso[p.id].push(p.estado);
 
 simular();
-
+renderizarGrafica(historialPorProceso);

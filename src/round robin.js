@@ -2,7 +2,7 @@ export function ejecutarRR(procesosOriginales, quantum) {
   const procesos = procesosOriginales.map((p) => ({
     ...p,
     progreso: 0,
-    estado: "listo",
+    estado: null,
     tiempoBloqueoRestante: 0,
     startTime: null,
     finishTime: null,
@@ -23,16 +23,18 @@ export function ejecutarRR(procesosOriginales, quantum) {
     procesos.forEach((p) => {
       if (p.llegada === tiempo) {
         colaListos.push(p);
+        p.estado = "listo";
       }
     });
 
     bloqueados.forEach((p, i) => {
-      p.tiempoBloqueoRestante--;
+      
       if (p.tiempoBloqueoRestante <= 0) {
         p.estado = "listo";
         colaListos.push(p);
         bloqueados.splice(i, 1);
       }
+      p.tiempoBloqueoRestante--;
     });
 
     if (!ejecutando && colaListos.length > 0) {
@@ -41,6 +43,15 @@ export function ejecutarRR(procesosOriginales, quantum) {
       ejecutando.estado = "ejecutando";
       if (ejecutando.startTime === null) ejecutando.startTime = tiempo;
     }
+
+    procesos.forEach((p) => {
+      if (p.estado === "listo" && p !== ejecutando) {
+        p.waitingTime++;
+      } else if (p.estado === "bloqueado") {
+        // El incremento ya lo hicimos arriba, pero puedes centralizarlo aquí si prefieres
+        p.blockingTime++;
+      }
+    });
 
     procesos.forEach((p) => {
       historial[p.id].push(p.estado);

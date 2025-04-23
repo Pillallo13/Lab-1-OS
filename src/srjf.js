@@ -2,7 +2,7 @@ export function ejecutarSRTF(procesosOriginales) {
   const procesos = procesosOriginales.map((p) => ({
     ...p,
     progreso: 0,
-    estado: "listo",
+    estado: null,
     tiempoBloqueoRestante: 0,
     tiempoEjecucionRestante: p.tiempoTotal,
     startTime: null,

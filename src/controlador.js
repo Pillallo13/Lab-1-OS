@@ -60,6 +60,7 @@ function leerInformacion() {
 
   console.log("Datos de la tabla de procesos:", datos);
   console.log("Historial Procesos: ", colaListos);
+  ejecutarAlgoritmoActual();
   return colaListos;
 }
 
@@ -75,7 +76,10 @@ function crearProceso(id, llegada, tiempoTotal, bloqueos = []) {
   };
 }
 
-selector.addEventListener("change", () => {
+selector.addEventListener("change", ejecutarAlgoritmoActual);
+
+
+function ejecutarAlgoritmoActual() {
   const seleccion = selector.value;
   const quantum = leerQuantum();
 
@@ -105,7 +109,7 @@ selector.addEventListener("change", () => {
   } else if (seleccion) {
     alert("Por favor, primero lee la información de la tabla.");
   }
-});
+};
 
 function leerQuantum() {
   const quantumInput = document.getElementById("quantum");

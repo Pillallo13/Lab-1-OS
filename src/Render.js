@@ -14,14 +14,16 @@ export function renderizarGrafica(historial) {
     fila.appendChild(celdaProceso);
 
     for (let t = 0; t < tiemposMax; t++) {
-      const estado = estados[t] || "espera";
+      const estado = estados[t] || null;
       const celda = document.createElement("td");
       if (estado === "ejecutando") {
         celda.innerHTML = `<div class="ejecucion"></div>`;
       } else if (estado === "bloqueado") {
         celda.innerHTML = `<div class="bloqueo"></div>`;
-      } else {
+      } else if (estado === "listo") {
         celda.innerHTML = `<div class="espera"></div>`;
+      }else{
+        celda.innerHTML = `<div></div>`;
       }
       fila.appendChild(celda);
     }

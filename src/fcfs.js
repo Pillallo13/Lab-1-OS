@@ -1,5 +1,5 @@
 // -----> MODELO <------
-export function crearProceso(id, llegada = 0, tiempoTotal, bloqueos = []) {
+export function crearProceso(id, llegada, tiempoTotal, bloqueos = []) {
   return {
     id,
     llegada,
@@ -22,7 +22,7 @@ export function ejecutarFCFS(procesosOriginales) {
     ...p,
     bloqueos: [...p.bloqueos],
     progreso: 0,
-    estado: "listo",
+    estado: null,
     tiempoBloqueoRestante: 0,
     startTime: null,
     finishTime: null,
@@ -42,16 +42,17 @@ export function ejecutarFCFS(procesosOriginales) {
     procesos.forEach((p) => {
       if (p.llegada === tiempo) {
         colaListos.push(p);
+        p.estado = "listo";
       }
     });
 
     bloqueados.forEach((p, i) => {
-      p.tiempoBloqueoRestante--;
       if (p.tiempoBloqueoRestante <= 0) {
         p.estado = "listo";
         colaListos.push(p);
         bloqueados.splice(i, 1);
       }
+      p.tiempoBloqueoRestante--;
     });
 
     if (!ejecutando && colaListos.length > 0) {
@@ -59,6 +60,16 @@ export function ejecutarFCFS(procesosOriginales) {
       ejecutando.estado = "ejecutando";
       if (ejecutando.startTime === null) ejecutando.startTime = tiempo;
     }
+
+    procesos.forEach((p) => {
+      if (p.estado === "listo" && p !== ejecutando) {
+        p.waitingTime++;
+      } else if (p.estado === "bloqueado") {
+        // El incremento ya lo hicimos arriba, pero puedes centralizarlo aquí si prefieres
+        p.blockingTime++;
+      }
+    });
+    
 
     procesos.forEach((p) => {
       historial[p.id].push(p.estado);
